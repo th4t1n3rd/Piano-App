@@ -1,0 +1,1506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Scale & Chord Reference</title>
+
+<!-- Home-screen app behavior (iOS): launches full-screen, no Safari bars -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Scales">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0b0f1a">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%230b0f1a'/%3E%3Cg%3E%3Crect x='34' y='44' width='16' height='92' rx='3' fill='%23dde6f0'/%3E%3Crect x='52' y='44' width='16' height='92' rx='3' fill='%23dde6f0'/%3E%3Crect x='70' y='44' width='16' height='92' rx='3' fill='%2338bdf8'/%3E%3Crect x='88' y='44' width='16' height='92' rx='3' fill='%23dde6f0'/%3E%3Crect x='106' y='44' width='16' height='92' rx='3' fill='%23dde6f0'/%3E%3Crect x='124' y='44' width='16' height='92' rx='3' fill='%23818cf8'/%3E%3Crect x='45' y='44' width='11' height='58' rx='2' fill='%23111827'/%3E%3Crect x='63' y='44' width='11' height='58' rx='2' fill='%23111827'/%3E%3Crect x='99' y='44' width='11' height='58' rx='2' fill='%23111827'/%3E%3Crect x='117' y='44' width='11' height='58' rx='2' fill='%23111827'/%3E%3C/g%3E%3C/svg%3E">
+<style>
+  /* Native font stacks — no internet needed, works fully offline.
+     UI uses the system sans (San Francisco on iOS/Mac); labels use a
+     system monospace. Falls back gracefully on any device. */
+  :root {
+    --font-ui: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, system-ui, sans-serif;
+    --font-mono: ui-monospace, 'SF Mono', Menlo, Monaco, 'Cascadia Mono', 'Roboto Mono', monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0b0f1a;
+    --surface:   #111827;
+    --surface2:  #1a2235;
+    --border:    #1e2d45;
+    --accent:    #38bdf8;
+    --accent2:   #818cf8;
+    --accent3:   #34d399;
+    --lit:       #38bdf8;
+    --lit-glow:  rgba(56,189,248,0.35);
+    --text:      #e2e8f0;
+    --muted:     #64748b;
+    --white-key: #dde6f0;
+    --black-key: #111827;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-ui);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* extra top/bottom padding respects the iPhone notch & home indicator
+       when launched full-screen from the home screen */
+    padding:
+      calc(2rem + env(safe-area-inset-top)) 1rem
+      calc(4rem + env(safe-area-inset-bottom));
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+
+  header h1 {
+    font-family: var(--font-mono);
+    font-size: clamp(1.4rem, 3vw, 2rem);
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+
+  header p {
+    margin-top: 0.4rem;
+    font-size: 0.85rem;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+    margin-bottom: 2.5rem;
+    width: 100%;
+    max-width: 780px;
+  }
+
+  /* Circle of fifths wheel */
+  .wheel-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 2rem;
+  }
+
+  .wheel-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-family: var(--font-mono);
+  }
+
+  #fifthsWheel { max-width: 86vw; height: auto; }
+
+  .seg {
+    stroke: var(--bg);
+    stroke-width: 2;
+    cursor: pointer;
+    transition: fill 0.15s;
+  }
+  .seg-major { fill: var(--surface2); }
+  .seg-minor { fill: #0d1626; }
+  .seg-major:hover { fill: #243756; }
+  .seg-minor:hover { fill: #182842; }
+  .seg-major.selected { fill: var(--accent2); }
+  .seg-minor.selected { fill: var(--accent); }
+
+  .seg-label {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    fill: var(--text);
+    text-anchor: middle;
+    dominant-baseline: central;
+    pointer-events: none;
+  }
+  .seg-label-major { font-size: 15px; }
+  .seg-label-minor { font-size: 11px; fill: #8aa0bd; }
+  .seg-label-major.seg-label-dual { font-size: 11px; }
+  .seg-label-minor.seg-label-dual { font-size: 8.5px; }
+  .seg-label.selected { fill: #0b0f1a; }
+
+  .wheel-center {
+    fill: var(--surface);
+    stroke: var(--border);
+    stroke-width: 1.5;
+  }
+  .wheel-center-text {
+    font-family: var(--font-mono);
+    fill: var(--accent);
+    text-anchor: middle;
+    dominant-baseline: central;
+    pointer-events: none;
+  }
+
+  .control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex: 1;
+    min-width: 180px;
+  }
+
+  .control-group label {
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-family: var(--font-mono);
+  }
+
+  select {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--font-ui);
+    font-size: 0.95rem;
+    padding: 0.6rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2338bdf8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.8rem center;
+    padding-right: 2.2rem;
+    transition: border-color 0.2s;
+  }
+
+  select:focus { outline: none; border-color: var(--accent); }
+  select:hover { border-color: var(--accent); }
+
+  .tab-row {
+    display: flex;
+    gap: 0.4rem;
+    margin-bottom: 2rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.3rem;
+  }
+
+  .tab {
+    flex: 1;
+    padding: 0.5rem 1.2rem;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: all 0.18s;
+  }
+
+  .tab.active {
+    background: var(--accent);
+    color: #0b0f1a;
+    font-weight: 700;
+  }
+
+  /* PIANO */
+  .piano-wrap {
+    width: 100%;
+    max-width: 1100px;
+    overflow-x: auto;
+    padding: 0;
+    margin-bottom: 1rem;
+    border-radius: 14px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent) var(--surface);
+  }
+
+  .piano-wrap::-webkit-scrollbar { height: 8px; }
+  .piano-wrap::-webkit-scrollbar-track { background: var(--surface); border-radius: 4px; }
+  .piano-wrap::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  .piano-wrap::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+  /* The case that frames the keys */
+  .piano-case {
+    display: inline-block;
+    padding: 0 10px 12px;
+    background: linear-gradient(180deg, #16233b 0%, #0e1729 100%);
+    border: 1px solid #28384f;
+    border-radius: 10px;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.05),
+      0 14px 30px -12px rgba(0,0,0,0.8);
+  }
+
+  .piano {
+    display: flex;
+    position: relative;
+    height: 168px;
+    width: max-content;
+    user-select: none;
+    /* red felt strip running along the back of the keys */
+    border-top: 5px solid #6d2233;
+    border-radius: 3px;
+    box-shadow:
+      inset 0 7px 9px -6px rgba(0,0,0,0.85),
+      0 10px 22px -8px rgba(0,0,0,0.7);
+  }
+
+  .key-white {
+    position: relative;
+    width: 23px;
+    height: 162px;
+    background: linear-gradient(180deg, #f7fafc 0%, #e7edf4 62%, #d4dde8 100%);
+    border-left: 1px solid #b3c0cf;
+    border-right: 1px solid #93a4b8;
+    border-bottom: 1px solid #8595a8;
+    border-radius: 0 0 5px 5px;
+    cursor: pointer;
+    transition: background 0.1s, box-shadow 0.1s, transform 0.04s;
+    z-index: 1;
+    flex-shrink: 0;
+    box-shadow:
+      inset -2px 0 3px -2px rgba(0,0,0,0.18),
+      inset 0 -7px 6px -6px rgba(80,100,125,0.45);
+  }
+
+  .key-white:hover {
+    background: linear-gradient(180deg, #eef6ff 0%, #dceaf7 60%, #c7daec 100%);
+  }
+
+  /* lit keys: ivory key with a colored glow band at the base + circle marker */
+  .key-white.lit {
+    background: linear-gradient(180deg, #f7fafc 0%, #e3f4fd 55%, #bfe6fb 100%);
+    border-color: #6fbfe0;
+    box-shadow:
+      inset 0 -22px 20px -16px var(--accent),
+      inset -2px 0 3px -2px rgba(0,0,0,0.14),
+      0 0 10px -2px var(--lit-glow);
+  }
+
+  .key-white.root.lit {
+    background: linear-gradient(180deg, #f3f1ff 0%, #d9d6ff 50%, #b3b0fb 100%);
+    border-color: #6b6ae8;
+    box-shadow:
+      inset 0 -30px 24px -16px var(--accent2),
+      inset -2px 0 3px -2px rgba(0,0,0,0.14),
+      0 0 20px -1px rgba(129,140,248,0.75);
+  }
+
+  /* The label IS the circle marker, sitting near the base of the key. */
+  .key-label {
+    position: absolute;
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: none;               /* only shown on lit keys */
+    align-items: center;
+    justify-content: center;
+    width: 17px;
+    height: 17px;
+    border-radius: 50%;
+    font-family: var(--font-mono);
+    font-size: 0.52rem;
+    font-weight: 700;
+    line-height: 1;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+
+  /* show + color the circle on lit white keys */
+  .key-white.lit .key-label {
+    display: flex;
+    background: var(--accent);
+    color: #06283a;
+    box-shadow: 0 0 7px var(--lit-glow);
+  }
+
+  .key-white.root.lit .key-label {
+    display: flex;
+    width: 20px;
+    height: 20px;
+    font-size: 0.56rem;
+    background: var(--accent2);
+    color: #1a1740;
+    border: 1.5px solid #fff;
+    box-shadow: 0 0 10px var(--accent2);
+  }
+
+  .key-black {
+    position: absolute;
+    width: 14px;
+    height: 100px;
+    background: linear-gradient(180deg, #3a4458 0%, #1a2333 18%, #0b1019 100%);
+    border: 1px solid #05080d;
+    border-radius: 0 0 4px 4px;
+    cursor: pointer;
+    transition: background 0.1s, box-shadow 0.1s;
+    z-index: 2;
+    top: 0;
+    box-shadow:
+      inset 0 2px 1px rgba(255,255,255,0.18),
+      inset 0 -3px 4px rgba(0,0,0,0.6),
+      1px 3px 5px rgba(0,0,0,0.55);
+  }
+
+  .key-black::after {
+    /* glossy bevel highlight on the front face */
+    content: '';
+    position: absolute;
+    left: 1px; right: 1px; bottom: 3px;
+    height: 10px;
+    border-radius: 0 0 3px 3px;
+    background: linear-gradient(180deg, rgba(120,140,170,0.35), rgba(120,140,170,0));
+  }
+
+  .key-black:hover {
+    background: linear-gradient(180deg, #46566f 0%, #232f43 20%, #131b28 100%);
+  }
+
+  .key-black.lit {
+    background: linear-gradient(180deg, #7fd4ff 0%, #2aa9e8 55%, #1488c4 100%);
+    border-color: #0c84bb;
+    box-shadow:
+      inset 0 2px 2px rgba(255,255,255,0.5),
+      0 0 14px var(--lit-glow);
+  }
+
+  .key-black.root.lit {
+    background: linear-gradient(180deg, #c7ccff 0%, #8088f5 50%, #5f68ec 100%);
+    border-color: #4047d4;
+    box-shadow:
+      inset 0 2px 2px rgba(255,255,255,0.6),
+      0 0 20px rgba(129,140,248,0.8);
+  }
+
+  .key-black.lit::after,
+  .key-black.root.lit::after { opacity: 0; }
+
+  /* circle marker on black keys: smaller to fit the narrow key */
+  .key-black .key-label {
+    bottom: 8px;
+    width: 13px;
+    height: 13px;
+    font-size: 0.44rem;
+  }
+
+  .key-black.lit .key-label {
+    display: flex;
+    background: #06283a;
+    color: #7fd4ff;
+    border: 1px solid rgba(255,255,255,0.5);
+    box-shadow: none;
+  }
+
+  .key-black.root.lit .key-label {
+    display: flex;
+    width: 14px;
+    height: 14px;
+    background: #1a1740;
+    color: #c7ccff;
+    border: 1px solid #fff;
+  }
+
+  /* INFO PANEL */
+  .info-panel {
+    width: 100%;
+    max-width: 820px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.5rem;
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+
+  .info-name {
+    flex: 1;
+    min-width: 120px;
+  }
+
+  .info-name h2 {
+    font-family: var(--font-mono);
+    font-size: 1.3rem;
+    color: var(--accent);
+  }
+
+  .info-notes {
+    flex: 2;
+    min-width: 240px;
+  }
+
+  .info-notes h3 {
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    margin-bottom: 0.7rem;
+  }
+
+  .note-pills {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 0.4rem;
+    width: 100%;
+  }
+
+  .note-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1 1 0;
+    min-width: 0;
+    aspect-ratio: 1 / 1;
+    max-width: 42px;
+    border-radius: 6px;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    font-weight: 700;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+
+  .note-pill.lit {
+    background: rgba(56,189,248,0.15);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .note-pill.root {
+    background: rgba(129,140,248,0.2);
+    border-color: var(--accent2);
+    color: var(--accent2);
+  }
+
+  /* Diatonic chords panel */
+  .chords-panel {
+    width: 100%;
+    max-width: 820px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.4rem 1.5rem 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .chords-panel h3 {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.4rem;
+  }
+
+  .chords-sub {
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-bottom: 1.1rem;
+    line-height: 1.5;
+  }
+
+  .chord-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+    gap: 0.6rem;
+  }
+
+  .chord-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.7rem 0.6rem;
+    text-align: center;
+    transition: border-color 0.15s, transform 0.05s;
+  }
+
+  .chord-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-1px);
+  }
+
+  .chord-card.tonic {
+    border-color: var(--accent2);
+    background: rgba(129,140,248,0.12);
+  }
+
+  .chord-degree {
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+    margin-bottom: 0.25rem;
+  }
+
+  .chord-card.tonic .chord-degree { color: var(--accent2); }
+
+  .chord-name {
+    font-family: var(--font-ui);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .chord-quality {
+    font-size: 0.62rem;
+    color: var(--muted);
+    margin-top: 0.15rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .chord-card.selected {
+    border-color: var(--accent);
+    background: rgba(56,189,248,0.16);
+    box-shadow: 0 0 0 1px var(--accent), 0 0 12px -4px var(--accent);
+  }
+
+  /* Mini chord keyboard */
+  .mini-kb-wrap {
+    margin-top: 1.4rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.7rem;
+    max-width: 100%;
+  }
+
+  .mini-kb-scroll {
+    max-width: 100%;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .mini-kb-caption {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    text-align: center;
+    min-height: 1em;
+  }
+  .mini-kb-caption .mk-accent { color: var(--accent); font-weight: 700; }
+
+  .mini-piano-case {
+    display: inline-block;
+    padding: 0 8px 10px;
+    background: linear-gradient(180deg, #16233b 0%, #0e1729 100%);
+    border: 1px solid #28384f;
+    border-radius: 9px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 10px 22px -12px rgba(0,0,0,0.8);
+  }
+
+  .mini-piano {
+    display: flex;
+    position: relative;
+    height: 114px;
+    width: max-content;
+    user-select: none;
+    border-top: 4px solid #6d2233;
+    border-radius: 3px;
+    box-shadow: inset 0 6px 8px -6px rgba(0,0,0,0.85);
+  }
+
+  .mk-white {
+    position: relative;
+    width: 22px;
+    height: 110px;
+    background: linear-gradient(180deg, #f7fafc 0%, #e7edf4 62%, #d4dde8 100%);
+    border-left: 1px solid #b3c0cf;
+    border-right: 1px solid #93a4b8;
+    border-bottom: 1px solid #8595a8;
+    border-radius: 0 0 4px 4px;
+    flex-shrink: 0;
+    box-shadow: inset -2px 0 3px -2px rgba(0,0,0,0.18);
+  }
+  .mk-black {
+    position: absolute;
+    width: 13px;
+    height: 68px;
+    background: linear-gradient(180deg, #3a4458 0%, #1a2333 18%, #0b1019 100%);
+    border: 1px solid #05080d;
+    border-radius: 0 0 3px 3px;
+    z-index: 2;
+    top: 0;
+    box-shadow: inset 0 2px 1px rgba(255,255,255,0.18), 1px 3px 5px rgba(0,0,0,0.5);
+  }
+
+  .mk-white.on {
+    background: linear-gradient(180deg, #f7fafc 0%, #e3f4fd 55%, #bfe6fb 100%);
+    border-color: #6fbfe0;
+    box-shadow: inset 0 -22px 18px -15px var(--accent);
+  }
+  .mk-white.on.rootnote {
+    background: linear-gradient(180deg, #f3f1ff 0%, #d9d6ff 50%, #b3b0fb 100%);
+    border-color: #6b6ae8;
+    box-shadow: inset 0 -26px 20px -15px var(--accent2);
+  }
+  .mk-black.on {
+    background: linear-gradient(180deg, #7fd4ff 0%, #2aa9e8 55%, #1488c4 100%);
+    border-color: #0c84bb;
+  }
+  .mk-black.on.rootnote {
+    background: linear-gradient(180deg, #b3bcff 0%, #7079f2 55%, #555fe6 100%);
+    border-color: #4a50d8;
+  }
+
+  .mk-label {
+    position: absolute;
+    bottom: 7px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 17px; height: 17px;
+    border-radius: 50%;
+    font-family: var(--font-mono);
+    font-size: 0.5rem;
+    font-weight: 700;
+    pointer-events: none;
+  }
+  .mk-white.on .mk-label { display: flex; background: var(--accent); color: #06283a; }
+  .mk-white.on.rootnote .mk-label { background: var(--accent2); color: #1a1740; border: 1.5px solid #fff; }
+  .mk-black .mk-label { bottom: 5px; width: 12px; height: 12px; font-size: 0.42rem; }
+  .mk-black.on .mk-label { display: flex; background: #06283a; color: #7fd4ff; border: 1px solid rgba(255,255,255,0.5); }
+  .mk-black.on.rootnote .mk-label { background: #1a1740; color: #c7ccff; border: 1px solid #fff; }
+
+  .legend {
+    display: flex;
+    gap: 1.2rem;
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin-top: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+  }
+
+  .legend-dot.root { background: var(--accent2); }
+  .legend-dot.note { background: var(--accent); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Scale &amp; Chord Reference</h1>
+  <p>Pick a root on the circle of fifths, then choose a pattern</p>
+</header>
+
+<div class="wheel-wrap">
+  <label class="wheel-label">Root Note · Circle of Fifths</label>
+  <svg id="fifthsWheel" viewBox="0 0 320 320" width="320" height="320" role="group" aria-label="Circle of fifths root selector"></svg>
+</div>
+
+<div class="controls">
+  <div class="control-group">
+    <label>Mode</label>
+    <div class="tab-row" id="modeTab" style="margin-bottom:0; flex:1;">
+      <button class="tab active" data-mode="scale">Scales</button>
+      <button class="tab" data-mode="chord">Chords</button>
+    </div>
+  </div>
+  <div class="control-group">
+    <label>Pattern</label>
+    <select id="patternSelect"></select>
+  </div>
+  <div class="control-group">
+    <label>Key Labels</label>
+    <div class="tab-row" id="labelTab" style="margin-bottom:0; flex:1;">
+      <button class="tab active" data-label="note">Notes</button>
+      <button class="tab" data-label="degree">Degrees</button>
+    </div>
+  </div>
+</div>
+
+<div class="piano-wrap" id="pianoWrap">
+  <div class="piano-case">
+    <div class="piano" id="piano"></div>
+  </div>
+</div>
+
+<div class="legend" style="max-width:1100px;width:100%;margin-bottom:1.5rem;">
+  <div class="legend-item"><div class="legend-dot root"></div><span>Root note</span></div>
+  <div class="legend-item"><div class="legend-dot note"></div><span>Scale / Chord tone</span></div>
+</div>
+
+<div class="info-panel">
+  <div class="info-name">
+    <h2 id="infoTitle">C Major</h2>
+  </div>
+  <div class="info-notes">
+    <h3>Notes</h3>
+    <div class="note-pills" id="notePills"></div>
+  </div>
+</div>
+
+<div class="chords-panel" id="chordsPanel">
+  <h3 id="chordsHeading">Chords in this scale</h3>
+  <p class="chords-sub" id="chordsSub"></p>
+  <div class="chord-cards" id="chordCards"></div>
+
+  <div class="mini-kb-wrap" id="miniKbWrap">
+    <div class="mini-kb-caption" id="miniKbCaption">Tap a chord above to see it here</div>
+    <div class="mini-kb-scroll">
+      <div class="mini-piano-case">
+        <div class="mini-piano" id="miniPiano"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const NOTES_SHARP = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+const NOTES_FLAT  = ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'];
+
+// Decide whether a key should be spelled with flats or sharps, following
+// standard notation (the circle of fifths). For example F, B♭, E♭… major use
+// flats, while G, D, A… major use sharps. C major / A minor use neither
+// (defaults to sharps, but those keys have no black notes in-scale anyway).
+// Root pitch classes that take FLAT spelling:
+const FLAT_MAJOR_ROOTS = new Set([5, 10, 3, 8, 1, 6]);   // F Bb Eb Ab Db Gb
+const FLAT_MINOR_ROOTS = new Set([2, 7, 0, 5, 10, 3]);   // Dm Gm Cm Fm Bbm Ebm
+
+// The "dual" keys at the bottom of the circle have two accepted spellings.
+// Keyed by root pitch class, separately for major and minor tonality.
+// Each entry tells which note arrays / wheel text to use for each spelling.
+const DUAL_MAJOR = new Set([6, 1]);   // F♯/G♭  and  D♭/C♯
+const DUAL_MINOR = new Set([3, 10]);  // D♯m/E♭m and B♭m/A♯m
+
+function isDualKey(rootPc, isMinorType) {
+  return isMinorType ? DUAL_MINOR.has(rootPc) : DUAL_MAJOR.has(rootPc);
+}
+
+function isMinorPattern(patternName) {
+  return /minor|dorian|phrygian|locrian|aeolian/i.test(patternName);
+}
+
+function useFlatsForKey(rootPc, patternName) {
+  const isMinorType = isMinorPattern(patternName);
+  // A manual override on a dual key wins.
+  if (isDualKey(rootPc, isMinorType) && enharmonicOverride) {
+    return enharmonicOverride === 'flat';
+  }
+  return isMinorType ? FLAT_MINOR_ROOTS.has(rootPc) : FLAT_MAJOR_ROOTS.has(rootPc);
+}
+
+const SCALES = {
+  'Major':             { intervals:[0,2,4,5,7,9,11], desc:'Bright and uplifting — the bedrock of Western tonal music.', useFlat:false },
+  'Natural Minor':     { intervals:[0,2,3,5,7,8,10], desc:'Dark and introspective. Relative to the major scale.', useFlat:true },
+  'Harmonic Minor':    { intervals:[0,2,3,5,7,8,11], desc:'Natural minor with a raised 7th, creating a dramatic leading tone.', useFlat:true },
+  'Melodic Minor':     { intervals:[0,2,3,5,7,9,11], desc:'Jazz minor — raised 6th and 7th going up, natural minor coming down.', useFlat:false },
+  'Dorian':            { intervals:[0,2,3,5,7,9,10], desc:'Minor with a raised 6th. Modal and jazzy — think "So What."', useFlat:false },
+  'Phrygian':          { intervals:[0,1,3,5,7,8,10], desc:'Minor with a flattened 2nd. Flamenco and metal love this mode.', useFlat:true },
+  'Lydian':            { intervals:[0,2,4,6,7,9,11], desc:'Major with a raised 4th. Dreamy and otherworldly.', useFlat:false },
+  'Mixolydian':        { intervals:[0,2,4,5,7,9,10], desc:'Major with a flatted 7th. The blues-rock backbone.', useFlat:false },
+  'Locrian':           { intervals:[0,1,3,5,6,8,10], desc:'The diminished mode — unstable and rarely used as a tonal center.', useFlat:true },
+  'Pentatonic Major':  { intervals:[0,2,4,7,9],       desc:'Five-note major scale. Clean, singable, universal.', useFlat:false },
+  'Pentatonic Minor':  { intervals:[0,3,5,7,10],      desc:'Five-note minor scale. The foundation of blues and rock lead guitar.', useFlat:true },
+  'Blues':             { intervals:[0,3,5,6,7,10],    desc:'Pentatonic minor plus the ♭5 "blue note." Soul and grit.', useFlat:true },
+  'Whole Tone':        { intervals:[0,2,4,6,8,10],    desc:'Six equal steps. Symmetrical, ambiguous, impressionistic (Debussy).', useFlat:false },
+  'Diminished (HW)':   { intervals:[0,1,3,4,6,7,9,10],desc:'Alternating half and whole steps. Eight-note octatonic scale.', useFlat:true },
+  'Chromatic':         { intervals:[0,1,2,3,4,5,6,7,8,9,10,11], desc:'All twelve pitches. Used for passing tones and total chromaticism.', useFlat:false },
+};
+
+const CHORDS = {
+  'Major (M)':         { intervals:[0,4,7],     desc:'Stable and bright. The consonant triad.', useFlat:false },
+  'Minor (m)':         { intervals:[0,3,7],     desc:'Darker, introspective. The minor triad.', useFlat:true },
+  'Dominant 7 (7)':    { intervals:[0,4,7,10],  desc:'Major triad + minor 7th. Tension seeking resolution.', useFlat:false },
+  'Major 7 (M7)':      { intervals:[0,4,7,11],  desc:'Lush and jazzy. The "smooth jazz" chord.', useFlat:false },
+  'Minor 7 (m7)':      { intervals:[0,3,7,10],  desc:'Soft and soulful. Essential in jazz and neo-soul.', useFlat:true },
+  'Diminished (dim)':  { intervals:[0,3,6],     desc:'Tense and unstable. Three minor thirds stacked.', useFlat:true },
+  'Diminished 7':      { intervals:[0,3,6,9],   desc:'Fully diminished — symmetrical tension, dark drama.', useFlat:true },
+  'Augmented (aug)':   { intervals:[0,4,8],     desc:'Three major thirds — ambiguous and dreamy.', useFlat:false },
+  'Suspended 2 (sus2)':{ intervals:[0,2,7],     desc:'Open and airy. Neither major nor minor.', useFlat:false },
+  'Suspended 4 (sus4)':{ intervals:[0,5,7],     desc:'Forward-moving tension. Resolves strongly to major.', useFlat:false },
+  'Minor M7':          { intervals:[0,3,7,11],  desc:'Minor triad + major 7th. Cinematic and haunting.', useFlat:true },
+  'Dominant 9 (9)':    { intervals:[0,4,7,10,14],desc:'7th chord plus 9th. Rich funk and jazz voicing.', useFlat:false },
+  'Major 9 (M9)':      { intervals:[0,4,7,11,14],desc:'Major 7 with an added 9th. Ethereal and lush.', useFlat:false },
+  'Minor 9 (m9)':      { intervals:[0,3,7,10,14],desc:'Minor 7 plus 9th. Warm neo-soul depth.', useFlat:true },
+  'Add 9':             { intervals:[0,4,7,14],  desc:'Triad plus 9th, no 7th. Bright without tension.', useFlat:false },
+  'Minor Add 9':       { intervals:[0,3,7,14],  desc:'Minor triad plus 9th. Melancholic color.', useFlat:true },
+  '6th':               { intervals:[0,4,7,9],   desc:'Major triad with added 6th. Clean and bright.', useFlat:false },
+  'Minor 6th':         { intervals:[0,3,7,9],   desc:'Minor triad with added 6th. Bittersweet tone.', useFlat:false },
+  'Half Dim (ø7)':     { intervals:[0,3,6,10],  desc:'Diminished triad + minor 7th. Modal jazz staple.', useFlat:true },
+  'Power (5)':         { intervals:[0,7],       desc:'Root and 5th only. No third — ambiguous, massive.', useFlat:false },
+};
+
+const INTERVAL_NAMES = {
+  0:'R', 1:'♭2', 2:'2', 3:'♭3', 4:'3', 5:'4',
+  6:'♭5', 7:'5', 8:'♭6', 9:'6', 10:'♭7', 11:'7', 12:'8', 13:'♭9', 14:'9'
+};
+
+let currentMode = 'scale';
+let currentRoot = 0;
+let currentPattern = 'Major';
+let currentLabel = 'note';
+let currentWheelKind = 'major'; // which ring is active: 'major' | 'minor'
+// Enharmonic override for the "dual" keys (F♯/G♭, D♭/C♯, and their minors).
+// null = use default spelling; 'flat' or 'sharp' = force that spelling.
+let enharmonicOverride = null;
+
+// ---- BUILD CIRCLE OF FIFTHS WHEEL ----
+// Clockwise from the top. Pitch classes:
+//   C G D A E B F# C# G# D# A# F
+const CIRCLE_OF_FIFTHS = [0, 7, 2, 9, 4, 11, 6, 1, 8, 3, 10, 5];
+
+// Conventional circle-of-fifths spellings, indexed by wheel POSITION (0 = top,
+// clockwise). The right half is spelled with sharps, the left half with flats,
+// and the two keys at the bottom show both enharmonic names.
+const MAJOR_WHEEL_LABELS = [
+  'C',        // 0  top
+  'G',        // 1
+  'D',        // 2
+  'A',        // 3
+  'E',        // 4
+  'B',        // 5
+  'F♯/G♭',    // 6  bottom — both
+  'D♭/C♯',    // 7  bottom — both
+  'A♭',       // 8  flats up the left side
+  'E♭',       // 9
+  'B♭',       // 10
+  'F'         // 11
+];
+const MINOR_WHEEL_LABELS = [
+  'Am',        // 0
+  'Em',        // 1
+  'Bm',        // 2
+  'F♯m',       // 3
+  'C♯m',       // 4
+  'G♯m',       // 5
+  'D♯m/E♭m',   // 6  both
+  'B♭m/A♯m',   // 7  both
+  'Fm',        // 8
+  'Cm',        // 9
+  'Gm',        // 10
+  'Dm'         // 11
+];
+
+const SVG_NS = 'http://www.w3.org/2000/svg';
+const WHEEL_CX = 160, WHEEL_CY = 160;
+const RING_MAJ_OUT = 150, RING_MAJ_IN = 104;   // outer ring = majors
+const RING_MIN_OUT = 104, RING_MIN_IN = 60;    // inner ring = relative minors
+const WHEEL_INNER = RING_MIN_IN;               // hub radius reference
+const LABEL_R_MAJ = (RING_MAJ_OUT + RING_MAJ_IN) / 2;
+const LABEL_R_MIN = (RING_MIN_OUT + RING_MIN_IN) / 2;
+
+function polar(cx, cy, r, angleDeg) {
+  const a = (angleDeg - 90) * Math.PI / 180; // 0deg = top
+  return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+}
+
+// Annular (donut) segment path for slice i of 12 between radii rOut and rIn.
+function segPath(i, rOut, rIn) {
+  const span = 360 / 12;
+  const start = i * span - span / 2;   // center slice on its angle
+  const end   = i * span + span / 2;
+  const [ox1, oy1] = polar(WHEEL_CX, WHEEL_CY, rOut, start);
+  const [ox2, oy2] = polar(WHEEL_CX, WHEEL_CY, rOut, end);
+  const [ix2, iy2] = polar(WHEEL_CX, WHEEL_CY, rIn, end);
+  const [ix1, iy1] = polar(WHEEL_CX, WHEEL_CY, rIn, start);
+  return [
+    'M', ox1, oy1,
+    'A', rOut, rOut, 0, 0, 1, ox2, oy2,
+    'L', ix2, iy2,
+    'A', rIn, rIn, 0, 0, 0, ix1, iy1,
+    'Z'
+  ].join(' ');
+}
+
+// Set a label's text, splitting "X/Y" enharmonic names onto two stacked lines
+// so they fit inside the narrow segments. dy values center the pair on (x,y).
+function setWheelLabel(el, text, x) {
+  while (el.firstChild) el.removeChild(el.firstChild);
+  if (text.includes('/')) {
+    el.classList.add('seg-label-dual');
+    const [a, b] = text.split('/');
+    const t1 = document.createElementNS(SVG_NS, 'tspan');
+    t1.setAttribute('x', x);
+    t1.setAttribute('dy', '-0.55em');
+    t1.textContent = a;
+    const t2 = document.createElementNS(SVG_NS, 'tspan');
+    t2.setAttribute('x', x);
+    t2.setAttribute('dy', '1.15em');
+    t2.textContent = b;
+    el.appendChild(t1);
+    el.appendChild(t2);
+  } else {
+    el.textContent = text;
+  }
+}
+
+function buildWheel() {
+  const svg = document.getElementById('fifthsWheel');
+  svg.innerHTML = '';
+
+  CIRCLE_OF_FIFTHS.forEach((pc, i) => {
+    const minorPc = (pc + 9) % 12; // relative minor root
+
+    // --- Major segment (outer ring) ---
+    const segMaj = document.createElementNS(SVG_NS, 'path');
+    segMaj.setAttribute('d', segPath(i, RING_MAJ_OUT, RING_MAJ_IN));
+    segMaj.setAttribute('class', 'seg seg-major');
+    segMaj.setAttribute('data-pc', pc);
+    segMaj.setAttribute('data-kind', 'major');
+    segMaj.addEventListener('click', () => selectKey(pc, 'major'));
+    svg.appendChild(segMaj);
+
+    const [mlx, mly] = polar(WHEEL_CX, WHEEL_CY, LABEL_R_MAJ, i * 30);
+    const labMaj = document.createElementNS(SVG_NS, 'text');
+    labMaj.setAttribute('x', mlx);
+    labMaj.setAttribute('y', mly);
+    labMaj.setAttribute('class', 'seg-label seg-label-major');
+    labMaj.setAttribute('data-pc', pc);
+    labMaj.setAttribute('data-kind', 'major');
+    setWheelLabel(labMaj, MAJOR_WHEEL_LABELS[i], mlx);
+    labMaj.addEventListener('click', () => selectKey(pc, 'major'));
+    svg.appendChild(labMaj);
+
+    // --- Relative minor segment (inner ring) ---
+    const segMin = document.createElementNS(SVG_NS, 'path');
+    segMin.setAttribute('d', segPath(i, RING_MIN_OUT, RING_MIN_IN));
+    segMin.setAttribute('class', 'seg seg-minor');
+    segMin.setAttribute('data-pc', minorPc);
+    segMin.setAttribute('data-kind', 'minor');
+    segMin.addEventListener('click', () => selectKey(minorPc, 'minor'));
+    svg.appendChild(segMin);
+
+    const [nlx, nly] = polar(WHEEL_CX, WHEEL_CY, LABEL_R_MIN, i * 30);
+    const labMin = document.createElementNS(SVG_NS, 'text');
+    labMin.setAttribute('x', nlx);
+    labMin.setAttribute('y', nly);
+    labMin.setAttribute('class', 'seg-label seg-label-minor');
+    labMin.setAttribute('data-pc', minorPc);
+    labMin.setAttribute('data-kind', 'minor');
+    setWheelLabel(labMin, MINOR_WHEEL_LABELS[i], nlx);
+    labMin.addEventListener('click', () => selectKey(minorPc, 'minor'));
+    svg.appendChild(labMin);
+  });
+
+  // center hub showing the current key
+  const hub = document.createElementNS(SVG_NS, 'circle');
+  hub.setAttribute('cx', WHEEL_CX);
+  hub.setAttribute('cy', WHEEL_CY);
+  hub.setAttribute('r', RING_MIN_IN - 5);
+  hub.setAttribute('class', 'wheel-center');
+  svg.appendChild(hub);
+
+  const hubText = document.createElementNS(SVG_NS, 'text');
+  hubText.setAttribute('x', WHEEL_CX);
+  hubText.setAttribute('y', WHEEL_CY - 7);
+  hubText.setAttribute('class', 'wheel-center-text');
+  hubText.setAttribute('font-size', '22');
+  hubText.setAttribute('id', 'hubNote');
+  svg.appendChild(hubText);
+
+  const hubSub = document.createElementNS(SVG_NS, 'text');
+  hubSub.setAttribute('x', WHEEL_CX);
+  hubSub.setAttribute('y', WHEEL_CY + 14);
+  hubSub.setAttribute('class', 'wheel-center-text');
+  hubSub.setAttribute('font-size', '9');
+  hubSub.setAttribute('fill', '#64748b');
+  hubSub.setAttribute('id', 'hubSub');
+  hubSub.textContent = 'ROOT';
+  svg.appendChild(hubSub);
+
+  renderWheelSelection();
+}
+
+// Select a key from the wheel. kind = 'major' | 'minor'.
+// Minor picks switch the pattern to Natural Minor (in scale mode).
+function selectKey(pc, kind) {
+  const isMinorType = (kind === 'minor');
+  const dual = isDualKey(pc, isMinorType);
+  // If re-tapping the SAME dual key, flip its spelling. Otherwise reset.
+  if (dual && pc === currentRoot && kind === currentWheelKind) {
+    // default spelling for these wheel keys is flat, so start flat -> sharp -> flat…
+    const current = enharmonicOverride || 'flat';
+    enharmonicOverride = (current === 'flat') ? 'sharp' : 'flat';
+  } else {
+    enharmonicOverride = null;
+  }
+  currentRoot = pc;
+  currentWheelKind = kind;
+  if (currentMode === 'scale') {
+    currentPattern = (kind === 'minor') ? 'Natural Minor' : 'Major';
+    const sel = document.getElementById('patternSelect');
+    if (sel) sel.value = currentPattern;
+  }
+  update();
+  renderWheelSelection();
+  centerOnScale();
+}
+
+function renderWheelSelection() {
+  const svg = document.getElementById('fifthsWheel');
+  if (!svg) return;
+  const matches = el =>
+    parseInt(el.getAttribute('data-pc')) === currentRoot && el.getAttribute('data-kind') === currentWheelKind;
+  svg.querySelectorAll('.seg').forEach(seg => {
+    seg.classList.toggle('selected', matches(seg));
+  });
+  svg.querySelectorAll('.seg-label').forEach(lbl => {
+    lbl.classList.toggle('selected', matches(lbl));
+  });
+  const hub = document.getElementById('hubNote');
+  const hubSub = document.getElementById('hubSub');
+  if (hub) {
+    const isMinorType = currentWheelKind === 'minor';
+    const dual = isDualKey(currentRoot, isMinorType);
+    let label = null;
+    if (dual && enharmonicOverride) {
+      // Show only the chosen spelling.
+      const arr = enharmonicOverride === 'flat' ? NOTES_FLAT : NOTES_SHARP;
+      label = arr[currentRoot] + (isMinorType ? 'm' : '');
+    } else {
+      // Find this root's position on the wheel to use the conventional spelling.
+      for (let i = 0; i < 12; i++) {
+        if (isMinorType) {
+          if ((CIRCLE_OF_FIFTHS[i] + 9) % 12 === currentRoot) { label = MINOR_WHEEL_LABELS[i]; break; }
+        } else {
+          if (CIRCLE_OF_FIFTHS[i] === currentRoot) { label = MAJOR_WHEEL_LABELS[i]; break; }
+        }
+      }
+    }
+    if (label === null) {
+      const sharp = NOTES_SHARP[currentRoot];
+      const flat = NOTES_FLAT[currentRoot];
+      label = sharp + (flat !== sharp ? '/' + flat : '') + (isMinorType ? 'm' : '');
+    }
+    // size to fit: dual (has "/") gets smaller
+    const isDualText = label.includes('/');
+    hub.textContent = label;
+    hub.setAttribute('font-size', isDualText ? '14' : (isMinorType ? '20' : '22'));
+  }
+  if (hubSub) hubSub.textContent = currentWheelKind === 'minor' ? 'MINOR' : 'MAJOR';
+}
+
+// ---- BUILD PATTERN SELECT ----
+function populatePatterns() {
+  const sel = document.getElementById('patternSelect');
+  sel.innerHTML = '';
+  const src = currentMode === 'scale' ? SCALES : CHORDS;
+  Object.keys(src).forEach(k => {
+    const opt = document.createElement('option');
+    opt.value = k;
+    opt.textContent = k;
+    sel.appendChild(opt);
+  });
+  currentPattern = sel.value;
+}
+
+// ---- BUILD PIANO ----
+// Full 88-key piano: MIDI 21 (A0) through 108 (C8).
+// 52 white keys, 36 black keys. Black keys are absolutely positioned
+// relative to the running white-key index so spacing is always correct.
+const FIRST_MIDI = 21;   // A0
+const LAST_MIDI  = 108;  // C8
+const WHITE_W    = 23;   // px width of a white key
+const BLACK_W    = 14;   // px width of a black key
+
+// pitch classes that ARE black keys
+const BLACK_PC = new Set([1, 3, 6, 8, 10]);
+
+function isBlack(midi) { return BLACK_PC.has(((midi % 12) + 12) % 12); }
+
+function buildPiano() {
+  const piano = document.getElementById('piano');
+  piano.innerHTML = '';
+
+  // First pass: count the white-key index for every midi note so black keys
+  // can be placed at the correct boundary.
+  let whiteCount = 0;
+  const whiteIndexBeforeMidi = {}; // midi -> number of white keys to its left
+
+  for (let midi = FIRST_MIDI; midi <= LAST_MIDI; midi++) {
+    whiteIndexBeforeMidi[midi] = whiteCount;
+    if (!isBlack(midi)) whiteCount++;
+  }
+  const totalWhite = whiteCount; // should be 52
+
+  // Build white keys first (they define the flex row), then black keys on top.
+  const blackQueue = [];
+
+  for (let midi = FIRST_MIDI; midi <= LAST_MIDI; midi++) {
+    const pc = ((midi % 12) + 12) % 12;
+    const octave = Math.floor(midi / 12) - 1; // MIDI octave (C4 = 60)
+
+    if (isBlack(midi)) {
+      // queue for second pass
+      blackQueue.push({ midi, pc, octave });
+      continue;
+    }
+
+    const key = document.createElement('div');
+    key.className = 'key-white';
+    key.dataset.semitone = pc;
+    key.dataset.abs = midi;              // absolute pitch = MIDI number
+    key.dataset.note = NOTES_SHARP[pc] + octave;
+
+    const lbl = document.createElement('span');
+    lbl.className = 'key-label';
+    key.appendChild(lbl);
+    piano.appendChild(key);
+  }
+
+  // Black keys: position absolutely centered on the boundary between
+  // the white key to their left and the next white key.
+  blackQueue.forEach(({ midi, pc, octave }) => {
+    const key = document.createElement('div');
+    key.className = 'key-black';
+    key.dataset.semitone = pc;
+    key.dataset.abs = midi;
+    key.dataset.note = NOTES_SHARP[pc] + octave;
+
+    // The black key sits between whiteIndexBeforeMidi[midi]-1 and that index.
+    // Its center is at the boundary = whiteIndexBeforeMidi[midi] * WHITE_W.
+    const boundary = whiteIndexBeforeMidi[midi] * WHITE_W;
+    key.style.left = (boundary - BLACK_W / 2) + 'px';
+
+    const lbl = document.createElement('span');
+    lbl.className = 'key-label';
+    lbl.style.color = '#9fb3cc';
+    key.appendChild(lbl);
+    piano.appendChild(key);
+  });
+
+  piano.style.width = (totalWhite * WHITE_W) + 'px';
+}
+
+// ---- DIATONIC CHORDS ----
+// Roman numerals for the 7 scale degrees.
+const ROMAN = ['I','II','III','IV','V','VI','VII'];
+
+// Classify a triad by its two stacked-third intervals (in semitones).
+// Returns { suffix, quality } e.g. major -> {suffix:'', quality:'major'}.
+function classifyTriad(third, fifth) {
+  if (third === 4 && fifth === 7) return { suffix: '',    quality: 'major' };
+  if (third === 3 && fifth === 7) return { suffix: 'm',   quality: 'minor' };
+  if (third === 3 && fifth === 6) return { suffix: '°',   quality: 'diminished' };
+  if (third === 4 && fifth === 8) return { suffix: '+',   quality: 'augmented' };
+  if (third === 2 && fifth === 7) return { suffix: 'sus2',quality: 'suspended' };
+  if (third === 5 && fifth === 7) return { suffix: 'sus4',quality: 'suspended' };
+  return { suffix: '?', quality: 'altered' };
+}
+
+// Build the diatonic triads for a 7-note scale. Returns an array of
+// { roman, root (note name), suffix, quality } or null if the scale
+// isn't a standard 7-note scale.
+function diatonicChords(intervals, rootPc, noteNames) {
+  if (intervals.length !== 7) return null;
+  const chords = [];
+  for (let i = 0; i < 7; i++) {
+    const r  = intervals[i];
+    const t  = intervals[(i + 2) % 7];
+    const f  = intervals[(i + 4) % 7];
+    // semitone distance from the chord root, wrapping the octave
+    const third = ((t - r) + 12) % 12;
+    const fifth = ((f - r) + 12) % 12;
+    const { suffix, quality } = classifyTriad(third, fifth);
+    // Roman numeral case follows quality: lower for minor/dim.
+    let roman = ROMAN[i];
+    if (quality === 'minor' || quality === 'diminished') roman = roman.toLowerCase();
+    if (quality === 'diminished') roman += '°';
+    if (quality === 'augmented') roman += '+';
+    const chordRootPc = (rootPc + r) % 12;
+    const noteName = noteNames[chordRootPc];
+    // The three chord tones as semitone OFFSETS from the chord root, so the
+    // mini keyboard can stack them in one octave: root, third, fifth.
+    const toneOffsets = [0, third, fifth];
+    chords.push({
+      roman, root: noteName, suffix, quality, isTonic: i === 0,
+      rootPc: chordRootPc, toneOffsets
+    });
+  }
+  return chords;
+}
+
+// ---- MINI CHORD KEYBOARD ----
+// A compact 2-octave keyboard (C up to the C two octaves higher) used to
+// display a single chord's shape. Built once; lit on demand.
+const MINI_FIRST = 60;          // middle C
+const MINI_LAST  = 60 + 21;     // ~1.75 octaves — enough for any root-position triad
+const MINI_WW = 22, MINI_BW = 13;
+const MINI_BLACK_PC = new Set([1, 3, 6, 8, 10]);
+function miniIsBlack(m) { return MINI_BLACK_PC.has(((m % 12) + 12) % 12); }
+
+function buildMiniKeyboard() {
+  const piano = document.getElementById('miniPiano');
+  if (!piano) return;
+  piano.innerHTML = '';
+  let whiteCount = 0;
+  const whiteIdxBefore = {};
+  for (let m = MINI_FIRST; m <= MINI_LAST; m++) {
+    whiteIdxBefore[m] = whiteCount;
+    if (!miniIsBlack(m)) whiteCount++;
+  }
+  const blacks = [];
+  for (let m = MINI_FIRST; m <= MINI_LAST; m++) {
+    if (miniIsBlack(m)) { blacks.push(m); continue; }
+    const key = document.createElement('div');
+    key.className = 'mk-white';
+    key.setAttribute('data-abs', m);
+    const lbl = document.createElement('span');
+    lbl.className = 'mk-label';
+    key.appendChild(lbl);
+    piano.appendChild(key);
+  }
+  blacks.forEach(m => {
+    const key = document.createElement('div');
+    key.className = 'mk-black';
+    key.setAttribute('data-abs', m);
+    key.style.left = (whiteIdxBefore[m] * MINI_WW - MINI_BW / 2) + 'px';
+    const lbl = document.createElement('span');
+    lbl.className = 'mk-label';
+    key.appendChild(lbl);
+    piano.appendChild(key);
+  });
+  piano.style.width = (whiteCount * MINI_WW) + 'px';
+}
+
+// Light up a chord on the mini keyboard. Pass null to clear.
+function showChordOnMini(chord) {
+  const piano = document.getElementById('miniPiano');
+  const caption = document.getElementById('miniKbCaption');
+  if (!piano) return;
+  // clear
+  piano.querySelectorAll('.mk-white, .mk-black').forEach(k => {
+    k.classList.remove('on', 'rootnote');
+    const lbl = k.querySelector('.mk-label');
+    if (lbl) lbl.textContent = '';
+  });
+  if (!chord) {
+    if (caption) caption.textContent = 'Tap a chord above to see it here';
+    return;
+  }
+  // Absolute midi notes: stack the triad from the chord root in the lower octave.
+  const noteNames = useFlatsForKey(currentRoot, currentPattern) ? NOTES_FLAT : NOTES_SHARP;
+  const baseMidi = MINI_FIRST + chord.rootPc; // chord root at/above middle C
+  chord.toneOffsets.forEach((off, idx) => {
+    const midi = baseMidi + off;
+    const key = piano.querySelector('[data-abs="' + midi + '"]');
+    if (key) {
+      key.classList.add('on');
+      if (idx === 0) key.classList.add('rootnote');
+      const lbl = key.querySelector('.mk-label');
+      if (lbl) lbl.textContent = noteNames[((midi % 12) + 12) % 12];
+    }
+  });
+  if (caption) {
+    const tones = chord.toneOffsets
+      .map(off => noteNames[((baseMidi + off) % 12 + 12) % 12])
+      .join(' · ');
+    caption.innerHTML = '<span class="mk-accent">' + chord.root + chord.suffix +
+      '</span>  ·  ' + tones;
+  }
+}
+
+// ---- UPDATE HIGHLIGHTS ----
+function update() {
+  const src = currentMode === 'scale' ? SCALES : CHORDS;
+  const pattern = src[currentPattern];
+  if (!pattern) return;
+
+  const { intervals } = pattern;
+  // Whether to spell with flats or sharps depends on the KEY (root note),
+  // following standard notation — e.g. F major uses B♭, not A♯.
+  const noteNames = useFlatsForKey(currentRoot, currentPattern) ? NOTES_FLAT : NOTES_SHARP;
+
+  // Active semitones (mod 12) — used for degree labels
+  const rootSemitone = currentRoot % 12;
+
+  // Map each active semitone (mod 12) to its degree label (R, 2, ♭3, …)
+  const degreeBySemitone = {};
+  intervals.forEach(iv => {
+    const semitone = (currentRoot + iv) % 12;
+    // first interval landing on a semitone wins (handles 9ths = 2, etc.)
+    if (!(semitone in degreeBySemitone)) {
+      degreeBySemitone[semitone] = INTERVAL_NAMES[iv] ?? String(iv);
+    }
+  });
+
+  // Build the exact set of ABSOLUTE midi notes for ONE octave of the scale,
+  // anchored on the root closest to middle C (MIDI 60). This way the scale
+  // is shown once rather than repeating across the whole keyboard.
+  const anchorRoot = 60 + ((rootSemitone - (60 % 12) + 12) % 12); // root >= 60 nearest to middle C
+  // step one octave down if that puts us too high above middle C is unnecessary;
+  // anchorRoot is the first root at or above 60, which is the natural choice.
+  const activeMidi = new Set();
+  let rootMidi = anchorRoot;
+  // if the chosen root sits far above 60 (e.g. B -> 71), prefer the one nearest 60
+  if (rootMidi - 60 > 6) rootMidi -= 12;
+  intervals.forEach(iv => activeMidi.add(rootMidi + iv));
+  // For scales, also include the octave (root + 12) so the run visually closes.
+  // Chords are left exactly as their intervals define them.
+  if (currentMode === 'scale') activeMidi.add(rootMidi + 12);
+
+  // Update keys
+  document.querySelectorAll('.key-white, .key-black').forEach(key => {
+    const s = parseInt(key.dataset.semitone);
+    const midi = parseInt(key.dataset.abs);
+    key.classList.remove('lit','root');
+    if (activeMidi.has(midi)) {
+      key.classList.add('lit');
+      if (midi === rootMidi || midi === rootMidi + 12) key.classList.add('root');
+    }
+    // Key label: note name or scale degree
+    const lbl = key.querySelector('.key-label');
+    if (lbl) {
+      if (currentLabel === 'degree') {
+        lbl.textContent = key.classList.contains('lit') ? degreeBySemitone[s] : '';
+      } else {
+        // note name, using the pattern's preferred sharp/flat spelling
+        lbl.textContent = key.classList.contains('lit') ? noteNames[s] : '';
+      }
+    }
+  });
+
+  // Info panel — the box shows the full name, e.g. "C Major Scale".
+  const rootName = noteNames[currentRoot];
+  const typeWord = currentMode === 'scale' ? ' Scale' : ' Chord';
+  document.getElementById('infoTitle').textContent = rootName + ' ' + currentPattern + typeWord;
+
+  // Note pills
+  const pills = document.getElementById('notePills');
+  pills.innerHTML = '';
+  // Build note list from intervals (may exceed octave for 9ths etc)
+  intervals.forEach((interval, idx) => {
+    const semitone = (currentRoot + interval) % 12;
+    const pill = document.createElement('div');
+    pill.className = 'note-pill' + (semitone === rootSemitone && idx === 0 ? ' root' : ' lit');
+    pill.textContent = noteNames[semitone];
+    pills.appendChild(pill);
+  });
+
+  // Diatonic chords (scale mode only)
+  const chordsPanel = document.getElementById('chordsPanel');
+  const chordCards  = document.getElementById('chordCards');
+  const chordsSub   = document.getElementById('chordsSub');
+  const chordsHeading = document.getElementById('chordsHeading');
+  if (currentMode === 'scale') {
+    chordsPanel.style.display = 'block';
+    chordsHeading.textContent = 'Chords in ' + rootName + ' ' + currentPattern;
+    chordCards.innerHTML = '';
+    const chords = diatonicChords(intervals, rootSemitone, noteNames);
+    if (chords) {
+      chordsSub.textContent =
+        'The triads built on each degree of the scale. Tap a chord to see it on the keyboard below. ' +
+        'Lowercase numerals are minor, ° is diminished, + is augmented.';
+      chords.forEach((c, idx) => {
+        const card = document.createElement('div');
+        card.className = 'chord-card' + (c.isTonic ? ' tonic' : '');
+        card.innerHTML =
+          '<div class="chord-degree">' + c.roman + '</div>' +
+          '<div class="chord-name">' + c.root + c.suffix + '</div>' +
+          '<div class="chord-quality">' + c.quality + '</div>';
+        card.addEventListener('click', () => {
+          // toggle selection
+          const already = card.classList.contains('selected');
+          chordCards.querySelectorAll('.chord-card').forEach(x => x.classList.remove('selected'));
+          if (already) {
+            showChordOnMini(null);
+          } else {
+            card.classList.add('selected');
+            showChordOnMini(c);
+          }
+        });
+        chordCards.appendChild(card);
+      });
+      // reset the mini keyboard whenever the scale/key changes
+      showChordOnMini(null);
+    } else {
+      chordsSub.textContent =
+        currentPattern + ' isn\u2019t a standard 7-note scale, so it doesn\u2019t have a ' +
+        'conventional series of diatonic triads. Try a major, minor, or modal scale to see its chords.';
+      showChordOnMini(null);
+    }
+  } else {
+    chordsPanel.style.display = 'none';
+  }
+}
+
+// ---- EVENTS ----
+document.getElementById('patternSelect').addEventListener('change', e => {
+  currentPattern = e.target.value;
+  // Reflect minor-type scales on the inner ring, major-type on the outer.
+  const minorish = /minor/i.test(currentPattern);
+  currentWheelKind = minorish ? 'minor' : 'major';
+  update();
+  renderWheelSelection();
+  centerOnScale();
+});
+
+document.getElementById('labelTab').addEventListener('click', e => {
+  if (!e.target.matches('.tab')) return;
+  document.querySelectorAll('#labelTab .tab').forEach(t => t.classList.remove('active'));
+  e.target.classList.add('active');
+  currentLabel = e.target.dataset.label;
+  update();
+});
+
+document.getElementById('modeTab').addEventListener('click', e => {
+  if (!e.target.matches('.tab')) return;
+  document.querySelectorAll('#modeTab .tab').forEach(t => t.classList.remove('active'));
+  e.target.classList.add('active');
+  currentMode = e.target.dataset.mode;
+  populatePatterns();
+  update();
+  centerOnScale();
+});
+
+// ---- INIT ----
+// Populate the controls first so a problem building the SVG wheel can never
+// leave the dropdowns empty.
+populatePatterns();
+buildPiano();
+buildMiniKeyboard();
+try { buildWheel(); } catch (err) { console.error('Wheel build failed:', err); }
+update();
+
+// Center the keyboard so the highlighted octave is in view.
+function centerOnScale() {
+  const wrap = document.getElementById('pianoWrap');
+  const piano = document.getElementById('piano');
+  if (!wrap || !piano) return;
+  // Center between the lowest and highest lit keys so the whole run shows.
+  const lit = piano.querySelectorAll('.key-white.lit, .key-black.lit');
+  let target;
+  if (lit.length) {
+    target = lit[Math.floor(lit.length / 2)];
+  } else {
+    target = piano.querySelector('[data-abs="60"]');
+  }
+  if (!target) return;
+  const wrapRect = wrap.getBoundingClientRect();
+  const keyRect = target.getBoundingClientRect();
+  const keyCenterInWrap = (keyRect.left - wrapRect.left) + wrap.scrollLeft + keyRect.width / 2;
+  wrap.scrollLeft = Math.max(0, keyCenterInWrap - wrap.clientWidth / 2);
+}
+centerOnScale();
+window.addEventListener('resize', centerOnScale);
+</script>
+</body>
+</html>
