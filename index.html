@@ -501,25 +501,6 @@
     color: var(--accent2);
   }
 
-  .intervals-row {
-    width: 100%;
-    max-width: 820px;
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-    margin-bottom: 1.5rem;
-  }
-
-  .interval-chip {
-    padding: 0.25rem 0.7rem;
-    border-radius: 20px;
-    font-family: var(--font-mono);
-    font-size: 0.7rem;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    color: var(--muted);
-  }
-
   /* Diatonic chords panel */
   .chords-panel {
     width: 100%;
@@ -596,6 +577,122 @@
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
+
+  .chord-card.selected {
+    border-color: var(--accent);
+    background: rgba(56,189,248,0.16);
+    box-shadow: 0 0 0 1px var(--accent), 0 0 12px -4px var(--accent);
+  }
+
+  /* Mini chord keyboard */
+  .mini-kb-wrap {
+    margin-top: 1.4rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.7rem;
+    max-width: 100%;
+  }
+
+  .mini-kb-scroll {
+    max-width: 100%;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .mini-kb-caption {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    text-align: center;
+    min-height: 1em;
+  }
+  .mini-kb-caption .mk-accent { color: var(--accent); font-weight: 700; }
+
+  .mini-piano-case {
+    display: inline-block;
+    padding: 0 8px 10px;
+    background: linear-gradient(180deg, #16233b 0%, #0e1729 100%);
+    border: 1px solid #28384f;
+    border-radius: 9px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 10px 22px -12px rgba(0,0,0,0.8);
+  }
+
+  .mini-piano {
+    display: flex;
+    position: relative;
+    height: 114px;
+    width: max-content;
+    user-select: none;
+    border-top: 4px solid #6d2233;
+    border-radius: 3px;
+    box-shadow: inset 0 6px 8px -6px rgba(0,0,0,0.85);
+  }
+
+  .mk-white {
+    position: relative;
+    width: 22px;
+    height: 110px;
+    background: linear-gradient(180deg, #f7fafc 0%, #e7edf4 62%, #d4dde8 100%);
+    border-left: 1px solid #b3c0cf;
+    border-right: 1px solid #93a4b8;
+    border-bottom: 1px solid #8595a8;
+    border-radius: 0 0 4px 4px;
+    flex-shrink: 0;
+    box-shadow: inset -2px 0 3px -2px rgba(0,0,0,0.18);
+  }
+  .mk-black {
+    position: absolute;
+    width: 13px;
+    height: 68px;
+    background: linear-gradient(180deg, #3a4458 0%, #1a2333 18%, #0b1019 100%);
+    border: 1px solid #05080d;
+    border-radius: 0 0 3px 3px;
+    z-index: 2;
+    top: 0;
+    box-shadow: inset 0 2px 1px rgba(255,255,255,0.18), 1px 3px 5px rgba(0,0,0,0.5);
+  }
+
+  .mk-white.on {
+    background: linear-gradient(180deg, #f7fafc 0%, #e3f4fd 55%, #bfe6fb 100%);
+    border-color: #6fbfe0;
+    box-shadow: inset 0 -22px 18px -15px var(--accent);
+  }
+  .mk-white.on.rootnote {
+    background: linear-gradient(180deg, #f3f1ff 0%, #d9d6ff 50%, #b3b0fb 100%);
+    border-color: #6b6ae8;
+    box-shadow: inset 0 -26px 20px -15px var(--accent2);
+  }
+  .mk-black.on {
+    background: linear-gradient(180deg, #7fd4ff 0%, #2aa9e8 55%, #1488c4 100%);
+    border-color: #0c84bb;
+  }
+  .mk-black.on.rootnote {
+    background: linear-gradient(180deg, #b3bcff 0%, #7079f2 55%, #555fe6 100%);
+    border-color: #4a50d8;
+  }
+
+  .mk-label {
+    position: absolute;
+    bottom: 7px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 17px; height: 17px;
+    border-radius: 50%;
+    font-family: var(--font-mono);
+    font-size: 0.5rem;
+    font-weight: 700;
+    pointer-events: none;
+  }
+  .mk-white.on .mk-label { display: flex; background: var(--accent); color: #06283a; }
+  .mk-white.on.rootnote .mk-label { background: var(--accent2); color: #1a1740; border: 1.5px solid #fff; }
+  .mk-black .mk-label { bottom: 5px; width: 12px; height: 12px; font-size: 0.42rem; }
+  .mk-black.on .mk-label { display: flex; background: #06283a; color: #7fd4ff; border: 1px solid rgba(255,255,255,0.5); }
+  .mk-black.on.rootnote .mk-label { background: #1a1740; color: #c7ccff; border: 1px solid #fff; }
 
   .legend {
     display: flex;
@@ -679,17 +776,37 @@
   </div>
 </div>
 
-<div class="intervals-row" id="intervalsRow"></div>
-
 <div class="chords-panel" id="chordsPanel">
   <h3 id="chordsHeading">Chords in this scale</h3>
   <p class="chords-sub" id="chordsSub"></p>
   <div class="chord-cards" id="chordCards"></div>
+
+  <div class="mini-kb-wrap" id="miniKbWrap">
+    <div class="mini-kb-caption" id="miniKbCaption">Tap a chord above to see it here</div>
+    <div class="mini-kb-scroll">
+      <div class="mini-piano-case">
+        <div class="mini-piano" id="miniPiano"></div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
 const NOTES_SHARP = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
 const NOTES_FLAT  = ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'];
+
+// Decide whether a key should be spelled with flats or sharps, following
+// standard notation (the circle of fifths). For example F, B♭, E♭… major use
+// flats, while G, D, A… major use sharps. C major / A minor use neither
+// (defaults to sharps, but those keys have no black notes in-scale anyway).
+// Root pitch classes that take FLAT spelling:
+const FLAT_MAJOR_ROOTS = new Set([5, 10, 3, 8, 1, 6]);   // F Bb Eb Ab Db Gb
+const FLAT_MINOR_ROOTS = new Set([2, 7, 0, 5, 10, 3]);   // Dm Gm Cm Fm Bbm Ebm
+function useFlatsForKey(rootPc, patternName) {
+  // Treat any pattern whose name implies minor tonality by the minor rule.
+  const isMinorType = /minor|dorian|phrygian|locrian|aeolian/i.test(patternName);
+  return isMinorType ? FLAT_MINOR_ROOTS.has(rootPc) : FLAT_MAJOR_ROOTS.has(rootPc);
+}
 
 const SCALES = {
   'Major':             { intervals:[0,2,4,5,7,9,11], desc:'Bright and uplifting — the bedrock of Western tonal music.', useFlat:false },
@@ -1088,10 +1205,97 @@ function diatonicChords(intervals, rootPc, noteNames) {
     if (quality === 'minor' || quality === 'diminished') roman = roman.toLowerCase();
     if (quality === 'diminished') roman += '°';
     if (quality === 'augmented') roman += '+';
-    const noteName = noteNames[(rootPc + r) % 12];
-    chords.push({ roman, root: noteName, suffix, quality, isTonic: i === 0 });
+    const chordRootPc = (rootPc + r) % 12;
+    const noteName = noteNames[chordRootPc];
+    // The three chord tones as semitone OFFSETS from the chord root, so the
+    // mini keyboard can stack them in one octave: root, third, fifth.
+    const toneOffsets = [0, third, fifth];
+    chords.push({
+      roman, root: noteName, suffix, quality, isTonic: i === 0,
+      rootPc: chordRootPc, toneOffsets
+    });
   }
   return chords;
+}
+
+// ---- MINI CHORD KEYBOARD ----
+// A compact 2-octave keyboard (C up to the C two octaves higher) used to
+// display a single chord's shape. Built once; lit on demand.
+const MINI_FIRST = 60;          // middle C
+const MINI_LAST  = 60 + 21;     // ~1.75 octaves — enough for any root-position triad
+const MINI_WW = 22, MINI_BW = 13;
+const MINI_BLACK_PC = new Set([1, 3, 6, 8, 10]);
+function miniIsBlack(m) { return MINI_BLACK_PC.has(((m % 12) + 12) % 12); }
+
+function buildMiniKeyboard() {
+  const piano = document.getElementById('miniPiano');
+  if (!piano) return;
+  piano.innerHTML = '';
+  let whiteCount = 0;
+  const whiteIdxBefore = {};
+  for (let m = MINI_FIRST; m <= MINI_LAST; m++) {
+    whiteIdxBefore[m] = whiteCount;
+    if (!miniIsBlack(m)) whiteCount++;
+  }
+  const blacks = [];
+  for (let m = MINI_FIRST; m <= MINI_LAST; m++) {
+    if (miniIsBlack(m)) { blacks.push(m); continue; }
+    const key = document.createElement('div');
+    key.className = 'mk-white';
+    key.setAttribute('data-abs', m);
+    const lbl = document.createElement('span');
+    lbl.className = 'mk-label';
+    key.appendChild(lbl);
+    piano.appendChild(key);
+  }
+  blacks.forEach(m => {
+    const key = document.createElement('div');
+    key.className = 'mk-black';
+    key.setAttribute('data-abs', m);
+    key.style.left = (whiteIdxBefore[m] * MINI_WW - MINI_BW / 2) + 'px';
+    const lbl = document.createElement('span');
+    lbl.className = 'mk-label';
+    key.appendChild(lbl);
+    piano.appendChild(key);
+  });
+  piano.style.width = (whiteCount * MINI_WW) + 'px';
+}
+
+// Light up a chord on the mini keyboard. Pass null to clear.
+function showChordOnMini(chord) {
+  const piano = document.getElementById('miniPiano');
+  const caption = document.getElementById('miniKbCaption');
+  if (!piano) return;
+  // clear
+  piano.querySelectorAll('.mk-white, .mk-black').forEach(k => {
+    k.classList.remove('on', 'rootnote');
+    const lbl = k.querySelector('.mk-label');
+    if (lbl) lbl.textContent = '';
+  });
+  if (!chord) {
+    if (caption) caption.textContent = 'Tap a chord above to see it here';
+    return;
+  }
+  // Absolute midi notes: stack the triad from the chord root in the lower octave.
+  const noteNames = useFlatsForKey(currentRoot, currentPattern) ? NOTES_FLAT : NOTES_SHARP;
+  const baseMidi = MINI_FIRST + chord.rootPc; // chord root at/above middle C
+  chord.toneOffsets.forEach((off, idx) => {
+    const midi = baseMidi + off;
+    const key = piano.querySelector('[data-abs="' + midi + '"]');
+    if (key) {
+      key.classList.add('on');
+      if (idx === 0) key.classList.add('rootnote');
+      const lbl = key.querySelector('.mk-label');
+      if (lbl) lbl.textContent = noteNames[((midi % 12) + 12) % 12];
+    }
+  });
+  if (caption) {
+    const tones = chord.toneOffsets
+      .map(off => noteNames[((baseMidi + off) % 12 + 12) % 12])
+      .join(' · ');
+    caption.innerHTML = '<span class="mk-accent">' + chord.root + chord.suffix +
+      '</span>  ·  ' + tones;
+  }
 }
 
 // ---- UPDATE HIGHLIGHTS ----
@@ -1100,8 +1304,10 @@ function update() {
   const pattern = src[currentPattern];
   if (!pattern) return;
 
-  const { intervals, desc, useFlat } = pattern;
-  const noteNames = useFlat ? NOTES_FLAT : NOTES_SHARP;
+  const { intervals, desc } = pattern;
+  // Whether to spell with flats or sharps depends on the KEY (root note),
+  // following standard notation — e.g. F major uses B♭, not A♯.
+  const noteNames = useFlatsForKey(currentRoot, currentPattern) ? NOTES_FLAT : NOTES_SHARP;
 
   // Active semitones (mod 12) — used for degree labels
   const rootSemitone = currentRoot % 12;
@@ -1169,16 +1375,6 @@ function update() {
     pills.appendChild(pill);
   });
 
-  // Interval chips
-  const row = document.getElementById('intervalsRow');
-  row.innerHTML = '';
-  intervals.forEach(iv => {
-    const chip = document.createElement('div');
-    chip.className = 'interval-chip';
-    chip.textContent = INTERVAL_NAMES[iv] || iv;
-    row.appendChild(chip);
-  });
-
   // Diatonic chords (scale mode only)
   const chordsPanel = document.getElementById('chordsPanel');
   const chordCards  = document.getElementById('chordCards');
@@ -1191,21 +1387,35 @@ function update() {
     const chords = diatonicChords(intervals, rootSemitone, noteNames);
     if (chords) {
       chordsSub.textContent =
-        'The triads built on each degree of the scale. The tonic (I) is highlighted; ' +
-        'lowercase numerals are minor, ° is diminished, + is augmented.';
-      chords.forEach(c => {
+        'The triads built on each degree of the scale. Tap a chord to see it on the keyboard below. ' +
+        'Lowercase numerals are minor, ° is diminished, + is augmented.';
+      chords.forEach((c, idx) => {
         const card = document.createElement('div');
         card.className = 'chord-card' + (c.isTonic ? ' tonic' : '');
         card.innerHTML =
           '<div class="chord-degree">' + c.roman + '</div>' +
           '<div class="chord-name">' + c.root + c.suffix + '</div>' +
           '<div class="chord-quality">' + c.quality + '</div>';
+        card.addEventListener('click', () => {
+          // toggle selection
+          const already = card.classList.contains('selected');
+          chordCards.querySelectorAll('.chord-card').forEach(x => x.classList.remove('selected'));
+          if (already) {
+            showChordOnMini(null);
+          } else {
+            card.classList.add('selected');
+            showChordOnMini(c);
+          }
+        });
         chordCards.appendChild(card);
       });
+      // reset the mini keyboard whenever the scale/key changes
+      showChordOnMini(null);
     } else {
       chordsSub.textContent =
         currentPattern + ' isn\u2019t a standard 7-note scale, so it doesn\u2019t have a ' +
         'conventional series of diatonic triads. Try a major, minor, or modal scale to see its chords.';
+      showChordOnMini(null);
     }
   } else {
     chordsPanel.style.display = 'none';
@@ -1246,6 +1456,7 @@ document.getElementById('modeTab').addEventListener('click', e => {
 // leave the dropdowns empty.
 populatePatterns();
 buildPiano();
+buildMiniKeyboard();
 try { buildWheel(); } catch (err) { console.error('Wheel build failed:', err); }
 update();
 
