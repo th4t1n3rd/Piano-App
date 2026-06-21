@@ -56,7 +56,7 @@
 
   header {
     text-align: center;
-    margin-bottom: 2.5rem;
+    margin-bottom: 1rem;
   }
 
   header h1 {
@@ -69,7 +69,7 @@
   }
 
   header p {
-    margin-top: 0.4rem;
+    margin-top: 1rem;
     font-size: 0.85rem;
     color: var(--muted);
     letter-spacing: 0.05em;
@@ -92,14 +92,6 @@
     align-items: center;
     gap: 0.8rem;
     margin-bottom: 2rem;
-  }
-
-  .wheel-label {
-    font-size: 0.7rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--muted);
-    font-family: var(--font-mono);
   }
 
   #fifthsWheel { max-width: 86vw; height: auto; }
@@ -707,24 +699,16 @@
 
 <header>
   <h1>Scale &amp; Chord Reference</h1>
-  <p>Pick a root on the circle of fifths, then choose a pattern</p>
+  <p>Tap a root note</p>
 </header>
 
 <div class="wheel-wrap">
-  <label class="wheel-label">Root Note · Circle of Fifths</label>
   <svg id="fifthsWheel" viewBox="0 0 320 320" width="320" height="320" role="group" aria-label="Circle of fifths root selector"></svg>
 </div>
 
 <div class="controls">
   <div class="control-group">
-    <label>Mode</label>
-    <div class="tab-row" id="modeTab" style="margin-bottom:0; flex:1;">
-      <button class="tab active" data-mode="scale">Scales</button>
-      <button class="tab" data-mode="chord">Chords</button>
-    </div>
-  </div>
-  <div class="control-group">
-    <label>Pattern</label>
+    <label>Scale</label>
     <select id="patternSelect"></select>
   </div>
   <div class="control-group">
@@ -1459,16 +1443,6 @@ document.getElementById('labelTab').addEventListener('click', e => {
   e.target.classList.add('active');
   currentLabel = e.target.dataset.label;
   update();
-});
-
-document.getElementById('modeTab').addEventListener('click', e => {
-  if (!e.target.matches('.tab')) return;
-  document.querySelectorAll('#modeTab .tab').forEach(t => t.classList.remove('active'));
-  e.target.classList.add('active');
-  currentMode = e.target.dataset.mode;
-  populatePatterns();
-  update();
-  centerOnScale();
 });
 
 // ---- INIT ----
